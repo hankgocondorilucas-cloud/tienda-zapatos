@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tienda de Zapatos (Estilo Pinterest) 👟✨
 
-## Getting Started
+Plataforma interactiva de descubrimiento y catálogo de calzado y conceptos de tiendas de zapatos, diseñada con layout masonry inspirado en Pinterest, filtros dinámicos por categorías, vista detallada tipo pin y carrito de compras.
 
-First, run the development server:
+## 🚀 Características
 
+- **Barra de chips de categorías**: Mujer, Dibujo, Animada, Interior, Decoración, Zapatería, Jordan, Tenis, Mall, Maqueta, Hombre y Botas.
+- **Masonry Grid responsive**: Cuadrícula dinámica de pines con alturas variables y tarjetas interactivas.
+- **Buscador en tiempo real**: Filtrado por marcas, modelos, estilos y categorías.
+- **Detalle de producto / Pin**: Modal interactivo con selector de tallas (EU), precios, opiniones y comentarios.
+- **Carrito de compras**: Slide-over con gestión de cantidades, subtotales y checkout simulado.
+- **Modo Claro / Oscuro**: Soporte para temas con detección automática.
+
+## 🛠️ Tecnologías
+
+- [Next.js](https://nextjs.org/) (App Router & Turbopack)
+- [React 19](https://react.dev/)
+- [Tailwind CSS v4](https://tailwindcss.com/)
+- [Lucide Icons](https://lucide.dev/)
+
+## 💻 Inicio Rápido
+
+1. Instalar dependencias:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Iniciar el servidor de desarrollo:
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+3. Abrir [http://localhost:3000](http://localhost:3000) en el navegador.
