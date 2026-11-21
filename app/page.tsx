@@ -1,69 +1,235 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useEffect, useMemo } from "react";
+import { Navbar } from "@/components/Navbar";
+import { CategoryChips } from "@/components/CategoryChips";
+import { ShoeMasonry } from "@/components/ShoeMasonry";
+import { PinDetailModal } from "@/components/PinDetailModal";
+import { CartDrawer, CartItem } from "@/components/CartDrawer";
+import { SHOE_PINS, ShoePin } from "@/data/shoeData";
+import { Check, Bookmark, Sparkles, Filter, X } from "lucide-react";
+
+export default function HomePage() {
+  const [selectedCategory, setSelectedCategory] = useState<string>("todos");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedPin, setSelectedPin] = useState<ShoePin | null>(null);
+  const [savedPinIds, setSavedPinIds] = useState<string[]>(["pin-1", "pin-6"]);
+  const [cart, setCart] = useState<CartItem[]>([
+    {
+      pin: SHOE_PINS[0],
+      size: 38,
+      quantity: 1,
+    },
+  ]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [showingSavedOnly, setShowingSavedOnly] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Sync dark mode class
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDarkMode]);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
+  };
+
+  // Toggle Save / Bookmark
+  const handleToggleSave = (pinId: string) => {
+    setSavedPinIds((prev) => {
+      const isAlreadySaved = prev.includes(pinId);
+      if (isAlreadySaved) {
+        showToast("Eliminado de tus guardados");
+        return prev.filter((id) => id !== pinId);
+      } else {
+        showToast("¡Guardado en tus tableros!");
+        return [...prev, pinId];
+      }
+    });
+  };
+
+  // Add to cart
+  const handleAddToCart = (pin: ShoePin, size: number = 38) => {
+    setCart((prev) => {
+      const existingIndex = prev.findIndex(
+        (item) => item.pin.id === pin.id && item.size === size
+      );
+      if (existingIndex > -1) {
+        const updated = [...prev];
+        updated[existingIndex].quantity += 1;
+        return updated;
+      } else {
+        return [...prev, { pin, size, quantity: 1 }];
+      }
+    });
+    showToast(`"${pin.title.slice(0, 28)}..." añadido al carrito`);
+  };
+
+  const handleUpdateQuantity = (
+    pinId: string,
+    size: number,
+    newQty: number
+  ) => {
+    if (newQty <= 0) {
+      handleRemoveItem(pinId, size);
+      return;
+    }
+    setCart((prev) =>
+      prev.map((item) =>
+        item.pin.id === pinId && item.size === size
+          ? { ...item, quantity: newQty }
+          : item
+      )
+    );
+  };
+
+  const handleRemoveItem = (pinId: string, size: number) => {
+    setCart((prev) =>
+      prev.filter((item) => !(item.pin.id === pinId && item.size === size))
+    );
+  };
+
+  const handleCheckout = () => {
+    setCart([]);
+    setIsCartOpen(false);
+    showToast("¡Compra simulada con éxito! Gracias por tu pedido.");
+  };
+
+  // Filter Pins
+  const filteredPins = useMemo(() => {
+    return SHOE_PINS.filter((pin) => {
+      // Filter by saved only if active
+      if (showingSavedOnly && !savedPinIds.includes(pin.id)) {
+        return false;
+      }
+
+      // Filter by category
+      if (
+        selectedCategory !== "todos" &&
+        !pin.categories.includes(selectedCategory.toLowerCase())
+      ) {
+        return false;
+      }
+
+      // Filter by search query
+      if (searchQuery.trim() !== "") {
+        const q = searchQuery.toLowerCase();
+        const matchesTitle = pin.title.toLowerCase().includes(q);
+        const matchesDesc = pin.description.toLowerCase().includes(q);
+        const matchesSource = pin.source.name.toLowerCase().includes(q);
+        const matchesCategory = pin.categories.some((c) =>
+          c.toLowerCase().includes(q)
+        );
+        return matchesTitle || matchesDesc || matchesSource || matchesCategory;
+      }
+
+      return true;
+    });
+  }, [selectedCategory, searchQuery, showingSavedOnly, savedPinIds]);
+
+  const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="min-h-screen bg-white dark:bg-[#0f0f11] text-neutral-900 dark:text-neutral-100 font-sans transition-colors duration-200">
+      {/* Top Navbar */}
+      <Navbar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        cartCount={totalCartCount}
+        onOpenCart={() => setIsCartOpen(true)}
+        savedCount={savedPinIds.length}
+        onViewSaved={() => setShowingSavedOnly(!showingSavedOnly)}
+        showingSavedOnly={showingSavedOnly}
+        isDarkMode={isDarkMode}
+        onToggleTheme={() => setIsDarkMode(!isDarkMode)}
+      />
+
+      {/* Horizontal Category Chips (Matches Reference Image Exactly) */}
+      {!showingSavedOnly && (
+        <CategoryChips
+          selectedCategory={selectedCategory}
+          onSelectCategory={(id) => {
+            setSelectedCategory(id);
+            setSearchQuery("");
+          }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      )}
+
+      {/* Filter status banner (if filtered or viewing saved) */}
+      {(showingSavedOnly || selectedCategory !== "todos" || searchQuery) && (
+        <div className="max-w-[1720px] mx-auto px-4 sm:px-8 pt-4 pb-1 flex items-center justify-between text-xs sm:text-sm text-neutral-600 dark:text-neutral-400">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-neutral-900 dark:text-white">
+              {showingSavedOnly
+                ? "Tus Pines y Zapatos Guardados"
+                : searchQuery
+                ? `Resultados para "${searchQuery}"`
+                : `Categoría: ${selectedCategory.toUpperCase()}`}
+            </span>
+            <span>({filteredPins.length} modelos)</span>
+          </div>
+
+          <button
+            onClick={() => {
+              setSelectedCategory("todos");
+              setSearchQuery("");
+              setShowingSavedOnly(false);
+            }}
+            className="flex items-center gap-1 font-semibold text-[#E60023] hover:underline cursor-pointer"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <X className="w-4 h-4" />
+            <span>Restablecer filtros</span>
+          </button>
         </div>
+      )}
+
+      {/* Masonry Feed of Shoe Store Pins */}
+      <main className="w-full pb-16">
+        <ShoeMasonry
+          pins={filteredPins}
+          onPinClick={(pin) => setSelectedPin(pin)}
+          onAddToCart={(pin) => handleAddToCart(pin)}
+          savedPinIds={savedPinIds}
+          onToggleSave={handleToggleSave}
+        />
       </main>
+
+      {/* Modal Detail */}
+      {selectedPin && (
+        <PinDetailModal
+          pin={selectedPin}
+          onClose={() => setSelectedPin(null)}
+          onAddToCart={handleAddToCart}
+          isSaved={savedPinIds.includes(selectedPin.id)}
+          onToggleSave={handleToggleSave}
+        />
+      )}
+
+      {/* Shopping Cart Drawer */}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cart={cart}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onCheckout={handleCheckout}
+      />
+
+      {/* Floating Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 text-xs sm:text-sm font-semibold shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-200">
+          <Check className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
     </div>
   );
 }
